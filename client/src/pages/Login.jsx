@@ -3,6 +3,8 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2';
 import { jwtDecode } from "jwt-decode";
+import { Layout } from 'lucide-react';
+import Layouts from '../components/Layouts';
 
 function Login() {
     const navigate = useNavigate()
@@ -73,6 +75,8 @@ function Login() {
 
     }
     return (
+        <Layouts>
+
         <section className="bg-white">
             <div className="lg:grid lg:min-h-screen lg:grid-cols-12">
                 <aside className="relative block h-16 lg:order-last lg:col-span-5 lg:h-full xl:col-span-6">
@@ -165,6 +169,8 @@ function Login() {
                 </main>
             </div>
         </section>
+        </Layouts>
+
     )
 }
 

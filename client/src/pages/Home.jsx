@@ -3,14 +3,18 @@ import DataTable from 'react-data-table-component'
 import { UserCog } from 'lucide-react';
 import { UserX } from 'lucide-react';
 import { UserPlus } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import axios from 'axios'
 import Swal from 'sweetalert2';
-import AddTodo from './AddTodo';
+import Layouts from '../components/Layouts';
+import ReactPaginate from 'react-paginate';
 
 
 function Home() {
     const [open , setOpen] = useState(false)
     const [todo, setTodo] = useState([])
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [id , setId] = useState('')
     const [editmodal , setEditModal] = useState(false)
     const BASE_URL = import.meta.env.VITE_REACT_APP_BASE_URL;
@@ -25,15 +29,20 @@ function Home() {
         content:'',
     })
 
-    let getTodo = async () => {
-
-        let response = await axios.get(`${BASE_URL}/api/todocreate`);
-        console.log(response.data);
-        if (response.status === 200) {
-            setTodo(response.data)
-           
+    useEffect(() => {
+        if (userId) {
+            setAdd(prevAdd => ({ ...prevAdd, user: userId }));
+            setEdit(prevAdd => ({ ...prevAdd, user: userId }));
         }
+    }, [userId]); 
+    
 
+    let getTodo = async (page = 1) => {
+        let response = await axios.get(`${BASE_URL}/api/todolist/${userId}/?page=${page}`);
+        if (response.status === 200) {
+            setTodo(response.data.results)
+            setTotalPages(response.data.count); 
+        }
     }
 
 
@@ -90,13 +99,31 @@ function Home() {
        
     }
 
-    useEffect(() => {
-        if (userId) {
-            setAdd(prevAdd => ({ ...prevAdd, user: userId }));
-            setEdit(prevAdd => ({ ...prevAdd, user: userId }));
-        }
-    }, [userId]); 
-    
+    const handleCompleted = async (e,row) => {
+        console.log(row.id);
+        let response = await axios.post(`${BASE_URL}/api/todomark/${row.id}/`);
+      
+        if(response.status === 200){
+            const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+            });
+            Toast.fire({
+                icon: "success",
+                title: "Successfully Completed Todo Item"
+            });
+            forceUpdate()
+        }  
+    } 
+
+
 
     const handleCreate = async (e) => {
         if(!add.content.trim()){
@@ -180,8 +207,13 @@ function Home() {
     }
 
     useEffect(() => {
-        getTodo()
+        getTodo(currentPage)
     }, [BASE_URL,reducer])
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+    };
+    
 
     const coloumn = [
 
@@ -198,12 +230,28 @@ function Home() {
 
         },
         {
-            name: "STATUS",
+            name: "ACTIONS",
             cell: (row) => {
                 return (
                     <>
                         <button className="bg-transparent  text-blue-700 font-semibold py-2 px-4 border border-blue-500 hover:border-transparent rounded" onClick={(e) => handleEditModal(e ,row)}> <UserCog /> EDIT</button>
                         <button className="bg-transparent  text-blue-700 font-semibold py-2 px-4 border border-blue-500 hover:border-transparent rounded" onClick={(e) => handleDelete(e, row)}> <UserX /> DELETE</button>
+                    </>
+
+                );
+            },
+        },
+        {
+            name: "STATUS",
+            cell: (row) => {
+                return (
+                    <>
+                        {row.completed === false ? (
+                            <button className="bg-transparent  text-blue-700 font-semibold py-2 px-4 border border-blue-500 hover:border-transparent rounded" onClick={(e) => handleCompleted(e ,row)}> <Clock  /> </button>
+                        ):(
+                            <p> Task is Completed </p>
+                        
+                        )}
                     </>
 
                 );
@@ -215,6 +263,8 @@ function Home() {
 
 
     return (
+    <Layouts>
+
         <div>
 
 
@@ -257,6 +307,8 @@ function Home() {
             </DataTable>
 
             { open ? (
+                <div className='top-0 bottom-0 left-0 right-0 grid place-items-center fixed bg-black bg-opacity-50 '>
+
                  <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-lg sm:p-6 lg:p-8" role="alert">
                  <div className="flex items-center gap-4">
                      <span className="shrink-0 rounded-full bg-blue-400 p-2 text-white">
@@ -307,11 +359,15 @@ function Home() {
      
                  </div>
              </div>
+             </div>
+
             ):null}
 
 
             {editmodal ? (
-                <div className="rounded-2xl border border-blue-100 bg-white p-4 shadow-lg sm:p-6 lg:p-8" role="alert">
+                <div className='top-0 bottom-0 left-0 right-0 grid place-items-center fixed bg-black bg-opacity-50 '>
+
+                <div className=" broder-red-300 rounded-2xl border border-blue-100 bg-white p-4 shadow-lg sm:p-6 lg:p-8" role="alert">
                 <div className="flex items-center gap-4">
                   <span className="shrink-0 rounded-full bg-blue-400 p-2 text-white">
                     <svg
@@ -353,10 +409,28 @@ function Home() {
               
                 </div>
               </div>
+              </div>
+
             ):null}
 
-                
+
+<ReactPaginate
+    previousLabel={"previous"}
+    nextLabel={"next"}
+    breakLabel={"..."}
+    breakClassName={"break-me"}
+    pageCount={totalPages}
+    marginPagesDisplayed={2}
+    pageRangeDisplayed={5}
+    onPageChange={({ selected }) => handlePageChange(selected + 1)}
+    containerClassName={"pagination"}
+    subContainerClassName={"pages pagination"}
+    activeClassName={"active"}
+/>
+
         </div>
+    </Layouts>
+    
     )
 }
 
