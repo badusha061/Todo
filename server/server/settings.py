@@ -1,7 +1,7 @@
 
 from pathlib import Path
 from datetime import timedelta
-
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-qwz*zdv3l4h^%45_a@3q(1=^f7dm7*d21!3g+6-ba1i$omawn^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['13.51.206.232']
 
 
 MIN_PASSWORD_LENGTH = 8
@@ -106,21 +106,25 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 CORS_ORIGIN_ALLOW_ALL = True
 
 
 CORS_ORIGIN_WHITELIST = [
-    "http://localhost:5173",
-    "http://127.0.0.1:8000"
+    "https://todo-client-eight-nu.vercel.app",
+    "13.51.206.232 "
 ]
 
 
 
 CORS_ALLOWED_ORIGINS = [
-  "http://localhost:5173", 
+  "https://todo-client-eight-nu.vercel.app", 
 ]
 
 
@@ -142,6 +146,8 @@ TEMPLATES = [
     },
 ]
 
+
+
 WSGI_APPLICATION = 'server.wsgi.application'
 
 
@@ -151,13 +157,15 @@ WSGI_APPLICATION = 'server.wsgi.application'
 DATABASES = {
    "default": {
        "ENGINE": "django.db.backends.postgresql",
-       "NAME": "techincal",
-       "USER": "postgres",
-       "PASSWORD": "123",
-       "HOST": "127.0.0.1",
-       "PORT": "5432",
+       "NAME": os.environ.get('DATABASE_NAME'),
+       "USER": os.environ.get('DATABASE_USER'),
+       "PASSWORD": os.environ.get('DATABASE_PASSWORD'),
+       "HOST": os.environ.get('DATABASE_HOST'),
+       "PORT": os.environ.get('DATABASE_PORT'),
    }
 }
+
+
 
 
 # Password validation
@@ -195,6 +203,52 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  
+]
+
+
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = [
+    "http://44.202.100.172",
+    "https://44.202.100.172",
+    "http://0.0.0.0",
+    "https://0.0.0.0",
+    "http://0.0.0.0:9090",
+    "https://urbansteps.site",
+    "https://urbansteps.site",
+
+]
+
+
+CORS_ALLOWED_ORIGINS = [
+    "http://3.89.252.173",
+    "https://3.89.252.173",
+    "http://0.0.0.0",
+    "https://0.0.0.0",
+    "http://0.0.0.0:9090"
+]
+
+CORS_ALLOW_HEADERS = [
+    'access-control-allow-headers',
+    'access-control-allow-methods',
+    'access-control-allow-origin',
+    'content-type',
+    'x-csrftoken',
+    'authorization'
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

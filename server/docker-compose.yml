@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  postgres_todo:
+    image: postgres
+    container_name: postgres_container
+    environment:
+      POSTGRES_DB: 'todo_db'
+      POSTGRES_USER: 'todo_user'
+      POSTGRES_PASSWORD: 'todo_123'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    volumes:
+      - .:/app
+    container_name: todo_container
+    ports:
+      - 8000:8000
+    image: ibrahim966/todo:latest
+    command: gunicorn --bind 0.0.0.0:8000 server.wsgi:application
+    depends_on:
+      - postgres_todo
+  
+volumes:
+  postgres_data:
+ 
+
+
+
+
